@@ -2,13 +2,14 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient
+const ObjectId = require('mongodb').ObjectId
 
 var db, collection;
 
 const url = "mongodb+srv://demo:demo@cluster0-q2ojb.mongodb.net/test?retryWrites=true";
 const dbName = "demo";
 
-app.listen(3000, () => {
+app.listen(2121, () => {
     MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true }, (error, client) => {
         if(error) {
             throw error;
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
   db.collection('messages').find().toArray((err, result) => {
     if (err) return console.log(err)
     res.render('index.ejs', {messages: result})
+    console.log (result)
   })
 })
 
@@ -40,9 +42,10 @@ app.post('/messages', (req, res) => {
 
 app.put('/messages', (req, res) => {
   db.collection('messages')
-  .findOneAndUpdate({name: req.body.name, msg: req.body.msg}, {
+  .findOneAndUpdate({_id: new ObjectId(req.body.id)
+  }, {
     $set: {
-      thumbUp:req.body.thumbUp + 1
+      thumbUp:req.body.up ? req.body.counter + 1 : req.body.counter - 1,
     }
   }, {
     sort: {_id: -1},
@@ -54,7 +57,7 @@ app.put('/messages', (req, res) => {
 })
 
 app.delete('/messages', (req, res) => {
-  db.collection('messages').findOneAndDelete({name: req.body.name, msg: req.body.msg}, (err, result) => {
+  db.collection('messages').findOneAndDelete({_id: new ObjectId(req.body.id)}, (err, result) => {
     if (err) return res.send(500, err)
     res.send('Message deleted!')
   })
